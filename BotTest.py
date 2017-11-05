@@ -33,6 +33,64 @@ async def on_ready():
     print("ID: {}".format(bot.user.id))
     print(list(bot.servers))
 
+###### Channels ######
+
+@bot.command()
+async def getChannelsRaw():
+    await bot.say("I can see the following channels: ")
+    await bot.say(list(bot.get_all_channels()))
+
+@bot.command()
+async def getChannels():
+    await bot.say("I can see the following channels: ")
+    channelList = list(bot.get_all_channels())
+    channelString = ""
+    for c in channelList:
+    	channelString += str(c.name) + " in server, " + str(c.server.name) + "\n"
+    await bot.say(channelString)
+
+###### Roles ######
+
+@bot.command()
+async def getRolesAllServers():
+	await bot.say("I can see the following roles: ")
+	responseString = ""
+	serverList = list(bot.servers)
+	for s in serverList:
+		responseString += str(s.name) + "\n"
+		for role in s.roles:
+			if role.is_everyone is not True:
+				responseString += "- " + str(role.name) + "\n"
+		responseString += "\n"
+	await bot.say(responseString)
+
+@bot.command(pass_context = True)
+async def getRolesThisServer(ctx):
+	await bot.say("I can see the following roles: ")
+	responseString = ""
+	for role in ctx.message.server.roles:
+		if role.is_everyone is not True:
+			responseString += "- " + str(role.name) + "\n"
+	await bot.say(responseString)
+
+###### Servers ######
+
+@bot.command()
+async def getServersRaw():
+    await bot.say("I can see the following servers: ")
+    await bot.say(list(bot.servers))
+
+@bot.command()
+async def getServers():
+    await bot.say("I can see the following servers: ")
+    serverList = list(bot.servers)
+    serverString = ""
+    for s in serverList:
+        serverString += "- " + str(s.name) + "\n"
+    await bot.say(serverString)
+
+###### Dev ######
+
 @bot.command()
 async def test():
     await bot.say("Hello World!")
@@ -50,48 +108,8 @@ async def checkStatus():
     await bot.say("is_closed: " + str(bot.is_closed))
 
 @bot.command()
-async def getChannelsRaw():
-    await bot.say("I can see the following channels: ")
-    await bot.say(list(bot.get_all_channels()))
-
-@bot.command()
-async def getChannels():
-    await bot.say("I can see the following channels: ")
-    channelList = list(bot.get_all_channels())
-    channelString = ""
-    for c in channelList:
-    	channelString += str(c.name) + " in server, " + str(c.server.name) + "\n"
-    await bot.say(channelString)
-
-@bot.command()
-async def getRolesAllServers():
-	await bot.say("I can see the following roles: ")
-	responseString = ""
-	serverList = list(bot.servers)
-	for s in serverList:
-		responseString += str(s.name) + "\n"
-		for role in s.roles:
-			if role.is_everyone is not True:
-				responseString += "- " + str(role.name) + "\n"
-		responseString += "\n"
-	await bot.say(responseString)
-
-@bot.command()
-async def getServersRaw():
-    await bot.say("I can see the following servers: ")
-    await bot.say(list(bot.servers))
-
-@bot.command()
-async def getServers():
-    await bot.say("I can see the following servers: ")
-    serverList = list(bot.servers)
-    serverString = ""
-    for s in serverList:
-        serverString += "- " + str(s.name) + "\n"
-    await bot.say(serverString)
-
-@bot.command()
 async def tryLogin():
     await bot.login(botToken)
+
 
 bot.run(botToken)
