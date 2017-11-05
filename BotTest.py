@@ -50,9 +50,10 @@ async def getChannelsRaw():
 async def getChannels():
     await bot.say("I can see the following channels: ")
     channelList = list(bot.get_all_channels())
+    channelString = ""
     for c in channelList:
-        await bot.say(str(c.name) + " in server, " 
-                    + str(c.server.name))
+    	channelString += str(c.name) + " in server, " + str(c.server.name) + "\n"
+    await bot.say(channelString)
 
 @bot.command()
 async def getServersRaw():
@@ -63,8 +64,10 @@ async def getServersRaw():
 async def getServers():
     await bot.say("I can see the following servers: ")
     serverList = list(bot.servers)
+    serverString = ""
     for s in serverList:
-        await bot.say(str(s.name))
+        serverString += "- " + str(s.name) + "\n"
+    await bot.say(serverString)
 
 @bot.command()
 async def tryLogin():
