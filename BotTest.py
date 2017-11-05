@@ -4,6 +4,8 @@
 #Note that in Python 3.4 you use `@asyncio.coroutine` instead of `async def` and `yield from` instead of `await`.
 #Python 3.5+ use `async def`
 #Another tutorial that MIGHT be useful https://www.youtube.com/watch?v=aFI1SItR8tg
+#Awesome writeup on Decorators https://realpython.com/blog/python/primer-on-python-decorators/
+#For helper functions, you have to await coroutine calls to make sure a result is returned. See https://docs.python.org/3/library/asyncio-task.html
 
 #TODO:
 #-Make getChannels organize by server. Probs use a dictionary here.
@@ -11,12 +13,17 @@
 #--If the context is outside of the specified channel, tag the author.
 #-MAYBE refactor all these "gets" to helpers, make the current ones "say" functions
 #-Make getRoles build a list and return it in sorted alphabetical
+#Make creating roles only allowable by roles that can manage roles
+#Creating roles needs exception handling
+#Refactor roleNames helper to have a general default parameter
+#Might be a good idea to have role stuff as subcommands. See the discord.py docs
+#Maybe replace string concatenations with {}.format's
 
 #Dictionary
 # ServerName : ([Roles], [Channels])
 
 import discord
-from discord.ext.commands import Bot
+#from discord.ext.commands import Bot
 from discord.ext import commands
 
 botToken = "token"
@@ -50,6 +57,19 @@ async def getChannels():
     await bot.say(channelString)
 
 ###### Roles ######
+
+@bot.command(pass_context = True)
+async def createRole(ctx):
+	currentRoles = await getRoleNames(ctx)
+	print(type(currentRoles))
+	rolesToAdd = str(ctx.message.content).split(" ")
+	rolesToAdd.remove("!createRole")
+	await bot.say("You want me to add the following roles: \n" + " | ".join(rolesToAdd))
+	for role in rolesToAdd:
+		if role in currentRoles:
+			await bot.say(role + " already exists.")
+		else:
+			await bot.say(role + ", I can create that role.")
 
 @bot.command()
 async def getRolesAllServers():
@@ -89,6 +109,16 @@ async def getServers():
         serverString += "- " + str(s.name) + "\n"
     await bot.say(serverString)
 
+###### Helpers ######
+
+#Returns role names of the server from which context originated
+async def getRoleNames(ctx):
+	roles = ctx.message.server.roles
+	roleNames = []
+	for role in roles:
+		roleNames.append(role.name)
+	return roleNames
+
 ###### Dev ######
 
 @bot.command()
@@ -110,6 +140,5 @@ async def checkStatus():
 @bot.command()
 async def tryLogin():
     await bot.login(botToken)
-
 
 bot.run(botToken)
