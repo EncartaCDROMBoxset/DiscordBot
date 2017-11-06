@@ -26,7 +26,7 @@ import discord
 from discord.ext import commands
 
 botToken = "token"
-Client = discord.Client()
+Client = discord.Client() #Do I need this?
 bot_prefix="!"
 bot = commands.Bot(command_prefix = bot_prefix)
 #Server = "server goes here"
@@ -59,16 +59,22 @@ async def getChannels():
 
 @bot.command(pass_context = True)
 async def createRole(ctx):
-	currentRoles = await getRoleNames(ctx)
-	print(type(currentRoles))
+	currentRoles = await getRoles(ctx.message.server)
 	rolesToAdd = str(ctx.message.content).split(" ")
 	rolesToAdd.remove("!createRole")
 	await bot.say("You want me to add the following roles: \n" + " | ".join(rolesToAdd))
+	responseString = ""
 	for role in rolesToAdd:
-		if role in currentRoles:
-			await bot.say(role + " already exists.")
+		lowRole = role.lower()
+		if lowRole in currentRoles:
+			if currentRoles[lowRole].name == role:
+				responseString += role + " already exists.\n"
+			else:
+				responseString += "There's only a case difference between your request: {} \nand the existing role: {}\n".format(role, currentRoles[lowRole].name)
 		else:
-			await bot.say(role + ", I can create that role.")
+			responseString += role + " doesn't exist yet, so I can create that role.\n"
+	responseString = responseString[:-2]
+	await bot.say(responseString)
 
 @bot.command()
 async def getRolesAllServers():
@@ -110,13 +116,21 @@ async def getServers():
 
 ###### Helpers ######
 
-#Returns role names of the server from which context originated
-async def getRoleNames(ctx):
+#Returns role names of the server from which context originated as list of Strings
+async def getRoleNameStrings(ctx):
 	roles = ctx.message.server.roles
 	roleNames = []
 	for role in roles:
 		roleNames.append(role.name)
 	return roleNames
+
+#Returns a Dictionary with key: lowercase role name | value: Role object
+async def getRoles(server):
+	roles = server.roles
+	roleDict = {}
+	for role in roles:
+		roleDict[role.name.lower()] = role
+	return roleDict
 
 ###### Dev ######
 
