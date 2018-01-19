@@ -5,7 +5,8 @@
 #Python 3.5+ use `async def`
 #Another tutorial that MIGHT be useful https://www.youtube.com/watch?v=aFI1SItR8tg
 #Awesome writeup on Decorators https://realpython.com/blog/python/primer-on-python-decorators/
-#For helpe rfunctions, you have to await coroutine calls to make sure a result is returned. See https://docs.python.org/3/library/asyncio-task.html
+#For helper functions, you have to await coroutine calls to make sure a result is returned. See https://docs.python.org/3/library/asyncio-task.html
+#Using global variable in Python is slightly weird: https://stackoverflow.com/questions/423379/using-global-variables-in-a-function-other-than-the-one-that-created-them
 
 #TODO:
 #-Make getChannels organize by server. Probs use a dictionary here.
@@ -53,9 +54,8 @@ async def on_member_join(newMember):
 async def assignRoleOnJoin(user):
 	currentRoles = user.server.roles
 	for role in currentRoles:
-		if role.name == "Guests":
+		if role.name == "Guests": #Generalize this
 			await bot.add_roles(user, role)
-			print(talkChannel) #Fix this shit
 			if talkChannel != "Channel goes here":
 				await bot.send_message(bot.get_channel(talkChannel.id), "{} has joined, added to {}".format(user.name, talkChannel.name))
 			break
@@ -78,6 +78,7 @@ async def getChannels():
 
 @bot.command(pass_context = True)
 async def setTalkChannel(ctx):
+	global talkChannel 
 	talkChannel = ctx.message.channel
 	await bot.send_message(bot.get_channel(talkChannel.id), "I will post messages here.")
 
