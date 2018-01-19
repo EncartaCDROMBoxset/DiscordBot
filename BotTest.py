@@ -5,7 +5,7 @@
 #Python 3.5+ use `async def`
 #Another tutorial that MIGHT be useful https://www.youtube.com/watch?v=aFI1SItR8tg
 #Awesome writeup on Decorators https://realpython.com/blog/python/primer-on-python-decorators/
-#For helper functions, you have to await coroutine calls to make sure a result is returned. See https://docs.python.org/3/library/asyncio-task.html
+#For helpe rfunctions, you have to await coroutine calls to make sure a result is returned. See https://docs.python.org/3/library/asyncio-task.html
 
 #TODO:
 #-Make getChannels organize by server. Probs use a dictionary here.
@@ -17,7 +17,11 @@
 #Creating roles needs exception handling
 #Refactor roleNames helper to have a general default parameter
 #Might be a good idea to have role stuff as subcommands. See the discord.py docs
-#Maybe replace string concatenations with {}.format's
+#Maybe replace string concatenations with {}.format's or f-strings
+#Implement banned words, check those words in emoji strings too
+#Implement strikes, spam counts towards strikes
+#Make on_member_join and assignRoleOnJoin server agnostic or make commands for default role on per server basis
+#Set up a default talk channel in on_ready, clean up the check in assingRoleOnJoin
 
 #Dictionary
 # ServerName : ([Roles], [Channels])
@@ -25,12 +29,12 @@
 import discord
 from discord.ext import commands
 
-botToken = "token"
+botToken = "token goes here"
 Client = discord.Client() #Do I need this?
 bot_prefix="!"
 bot = commands.Bot(command_prefix = bot_prefix)
 #Server = "server goes here"
-TalkChannel = "Channel goes here"
+talkChannel = "Channel goes here"
 
 @bot.event
 async def on_ready():
@@ -38,6 +42,23 @@ async def on_ready():
     print("Name: {}".format(bot.user.name))
     print("ID: {}".format(bot.user.id))
     print(list(bot.servers))
+
+###### Events ######
+
+@bot.async_event
+async def on_member_join(newMember):
+	await assignRoleOnJoin(newMember)
+
+#Helper for on_member_join
+async def assignRoleOnJoin(user):
+	currentRoles = user.server.roles
+	for role in currentRoles:
+		if role.name == "Guests":
+			await bot.add_roles(user, role)
+			print(talkChannel) #Fix this shit
+			if talkChannel != "Channel goes here":
+				await bot.send_message(bot.get_channel(talkChannel.id), "{} has joined, added to {}".format(user.name, talkChannel.name))
+			break
 
 ###### Channels ######
 
@@ -54,6 +75,11 @@ async def getChannels():
     for c in channelList:
     	channelString += str(c.name) + " in server, " + str(c.server.name) + "\n"
     await bot.say(channelString)
+
+@bot.command(pass_context = True)
+async def setTalkChannel(ctx):
+	talkChannel = ctx.message.channel
+	await bot.send_message(bot.get_channel(talkChannel.id), "I will post messages here.")
 
 ###### Roles ######
 
@@ -125,6 +151,7 @@ async def getRoleNameStrings(ctx):
 	return roleNames
 
 #Returns a Dictionary with key: lowercase role name | value: Role object
+#Key is lowercase to make the comparison operation for createRole easier
 async def getRoles(server):
 	roles = server.roles
 	roleDict = {}
