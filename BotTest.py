@@ -23,6 +23,7 @@
 #Implement strikes, spam counts towards strikes
 #Make on_member_join and assignRoleOnJoin server agnostic or make commands for default role on per server basis
 #Set up a default talk channel in on_ready, clean up the check in assingRoleOnJoin
+#Figure out why the hell the error checking in massDM doesn't work. It's most likely because doing async checks within if statements and blocking calls but IDK HOMIE
 
 #Dictionary
 # ServerName : ([Roles], [Channels])
@@ -54,10 +55,10 @@ async def on_member_join(newMember):
 async def assignRoleOnJoin(user):
 	currentRoles = user.server.roles
 	for role in currentRoles:
-		if role.name == "Guests": #Generalize this
+		if role.name == "Guests": #Generalize this here and on the send_message
 			await bot.add_roles(user, role)
 			if talkChannel != "Channel goes here":
-				await bot.send_message(bot.get_channel(talkChannel.id), "{} has joined, added to {}".format(user.name, talkChannel.name))
+				await bot.send_message(bot.get_channel(talkChannel.id), "{} has joined, added to {}".format(user.name, "Guests"))
 			break
 
 ###### Channels ######
@@ -140,6 +141,30 @@ async def getServers():
     for s in serverList:
         serverString += "- " + str(s.name) + "\n"
     await bot.say(serverString)
+
+###### Messages ######
+
+#format is !massDM [names] | [message]
+@bot.command(pass_context = True)
+async def massDM(ctx):
+	firstHalf, text = str(ctx.message.content).split("|")
+	firstHalf = firstHalf[8:-1]
+	text = text[1:]
+	names = firstHalf.split(" ")
+
+	for name in names:
+		user = ctx.message.server.get_member_named(name)
+		# if user == None:
+		# 	print (name, "does not exist on this server.")
+		# 	await bot.say("user '{}' does not exist.".format(name))
+		# else:
+		# 	print(user, "exists on this server.")
+		# 	#await bot.send_message(ctx.message.channel, "User {} was messaged.".format(name))
+		# 	await bot.send_message(user, text)
+		await bot.send_message(ctx.message.channel, "User {} was messaged.".format(name))
+		await bot.send_message(user, text)
+	#await bot.say(text)
+	
 
 ###### Helpers ######
 
