@@ -24,6 +24,7 @@
 #Make on_member_join and assignRoleOnJoin server agnostic or make commands for default role on per server basis
 #Set up a default talk channel in on_ready, clean up the check in assingRoleOnJoin
 #Figure out why the hell the error checking in massDM doesn't work. It's most likely because doing async checks within if statements and blocking calls but IDK HOMIE
+#Change the logic in massDM to do the check within the main loop. Else, change the delimiter
 
 #Dictionary
 # ServerName : ([Roles], [Channels])
@@ -31,7 +32,7 @@
 import discord
 from discord.ext import commands
 
-botToken = "token goes here"
+botToken = "bot token here"
 Client = discord.Client() #Do I need this?
 bot_prefix="!"
 bot = commands.Bot(command_prefix = bot_prefix)
@@ -151,8 +152,15 @@ async def massDM(ctx):
 	firstHalf = firstHalf[8:-1]
 	text = text[1:]
 	names = firstHalf.split(" ")
+	#Fixes usernames with spaces
+	#This is gross. See if you can do it in the below loop
+	for i, name in enumerate(names):
+		while "#" not in names[i]:
+			names[i] += " " + names[i+1]
+			del names[i+1]
 
 	for name in names:
+		print(name)
 		user = ctx.message.server.get_member_named(name)
 		# if user == None:
 		# 	print (name, "does not exist on this server.")
